@@ -1,0 +1,5 @@
+const queue = require('./lib/queue')
+
+module.exports = {
+    queue
+}

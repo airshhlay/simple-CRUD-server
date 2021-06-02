@@ -1,0 +1,7 @@
+const q = require('../lib/queue')
+
+module.exports = async ({ test, assert, affirm }) => [
+    test("new queue has size 0", () => {
+        assert(q.size(), 0)
+    })
+]

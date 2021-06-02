@@ -1,0 +1,2 @@
+const { run } = require('t3st')
+run('./tests')

@@ -1,0 +1,7 @@
+const arr = []
+
+const size = () => arr.length
+
+module.exports = {
+    size
+}
