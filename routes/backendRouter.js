@@ -4,6 +4,7 @@ const DatabaseManager = require('../db/database-manager')
 var router = express.Router()
 
 // APIs called by workers
-
+router.put('/updateJobStatus'
+)
 
 

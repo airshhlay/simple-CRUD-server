@@ -16,9 +16,9 @@ Fields:
 */
 
 class DatabaseManager {
-    constructor() {
-        this.databaseName = process.env.DATABASE_NAME
-        this.connectionUrl = process.env.MONGO_CONNECTION_URL
+    constructor(databaseName, connectionURL) {
+        this.databaseName = databaseName
+        this.connectionUrl = connectionURL
         this.connect()
     }
 

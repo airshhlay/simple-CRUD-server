@@ -4,8 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "test": "mocha",
+    "server": "node server.js",
+    "backend": "node backend.js"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +18,8 @@
     "express": "^4.17.1",
     "express-validator": "^6.11.1",
     "http-errors": "^1.8.0",
+    "js-yaml": "^4.1.0",
+    "mocha": "^8.4.0",
     "mongodb": "^3.6.8",
     "mongoose": "^5.12.11",
     "swagger-jsdoc": "^7.0.0-rc.6",

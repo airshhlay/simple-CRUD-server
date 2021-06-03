@@ -1,26 +1,21 @@
-var dotenv = require('dotenv')
 var express = require('express')
-var bodyparser = require('body-parser')
 var swaggerUi = require("swagger-ui-express");
 var swaggerDocument = require('./swagger.json')
 var DatabaseManager = require('./db/database-manager.js')
-var queueManager = require('./services/rabbitmq-service.js')
 var router = require('./routes/router.js')
 var QueueManager = require('./services/rabbitmq-service.js')
+var Worker = require('./workers/worker')
+var loadConfig = require('./config/config-reader')
 
-// config dotenv
-dotenv.config({
-    path: __dirname + '/.env'
-})
+// configurations
+var config = loadConfig()
+// create database manager instance
+var databaseManager = new DatabaseManager(config.DATABASE_NAME, config.MONGO_CONNECTION_URL)
 
-// connect to database
-var databaseManager = new DatabaseManager()
+// create queue manager instance
+var statusQManager = new QueueManager(config.RMQ_JOB_QNAME, config.RMQ_CONNECTION_URL)
+var jobQManager = new QueueManager(config.RMQ_JOB_QNAME, config.RMQ_CONNECTION_URL)
 
-// set up rabbitmq
-var jobQueue = process.env.JOB_QNAME
-var statusQueue = process.env.STATUS_QNAME
-var jobQManager = new QueueManager(jobQueue)
-var statusQManager = new QueueManager(statusQueue)
 
 // express middleware
 var app = express()
@@ -42,6 +37,6 @@ app.use(
 );
 
 // start the server
-app.listen(process.env.PORT, process.env.HOST, () => {
-    console.log(">> SUCCESS: server is up on port " + process.env.PORT)
+app.listen(config.PORT, config.HOST, () => {
+    console.log(">> SUCCESS: server is up on port " + config.PORT)
 })

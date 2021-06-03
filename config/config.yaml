@@ -1,0 +1,23 @@
+# database
+DATABASE_NAME:
+  onboarding-assignment
+MONGO_CONNECTION_URL:
+  mongodb://127.0.0.1:27017
+
+# server
+PORT:
+  3000
+HOST:
+  127.0.0.1
+
+# rabbitmq
+RMQ_JOB_QNAME:
+  job-queue
+RMQ_STATUS_QNAME:
+  status-queue
+RMQ_CONNECTION_URL:
+  amqp://localhost
+
+# redis
+REDIS_URL:
+  redis://127.0.0.1:6379

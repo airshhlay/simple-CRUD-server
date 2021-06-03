@@ -1,43 +1,41 @@
 var amqp = require('amqplib/callback_api');
-var url = process.env.RMQ_CONNECTION_URL
-var queue = process.env.JOB_QUEUE
 
 class QueueManager {
-    constructor(queueName) {
+    constructor(queueName, connectionURL) {
         this.queue = queueName
-        this.connection = null
+        this.url = connectionURL
         this.channel = null
+        this.jobId = 0 // first job id will start with 1
     }
 
     getNewJobId() {
-        var jobId = parseInt(process.env.LAST_JOB_ID, 10) + 1
-        process.env.LAST_JOB_ID = jobId
-        return jobId
+       this.jobId ++
+       return this.jobId
     }
 
     connect () {
         return new Promise((resolve, reject) => {
-            if (this.channel !== undefined) {
+            if (this.channel !== null) {
                 console.log("reusing previously defined channel...")
                 resolve(this.channel)
             }
 
-            amqp.connect(url, (err, conn) => {
+            amqp.connect(this.url, (err, conn) => {
                 if (err) {
-                    console.log(">> ERROR: ", err)
+                    console.log(">> ERROR [connect]: error when calling amqp.connect")
                     reject(err)
                 }
     
-                console.log(">> SUCCESS: connected to rabbitmq");
+                console.log(">> SUCCESS [connect]: connected to rabbitmq");
                 console.log("attempting to create channel...")
     
                 conn.createChannel((err, ch) => {
                     if (err) {
-                        console.log(">> ERROR: ", err)
+                        console.log(">> ERROR [connect]: ", err)
                         reject(err)
                     }
     
-                    console.log(">> SUCCESS: created a channel")
+                    console.log(">> SUCCESS [connect]: created a channel")
                     this.channel = ch
                     resolve(ch)
                 })
@@ -51,16 +49,16 @@ class QueueManager {
             .then(ch => {
                 ch.assertQueue(this.queue, {
                     durable: true
-                });
+                })
         
                 var payloadStr = JSON.stringify(payload)
         
                 ch.sendToQueue(this.queue, Buffer.from(payloadStr), {persistent: true})
         
-                resolve(console.log(">> SUCCESS: sent to queue with message: ", payloadStr))
+                resolve(console.log(">> SUCCESS [publishToQueue]:  sent to queue with message: ", payloadStr))
             })
             .catch(err => {
-                console.log(">> ERROR: error occured when connecting to rabbitmq")
+                console.log(">> ERROR [publishToQueue] : error occured when connecting to rabbitmq")
                 reject(err)
             })
         }
@@ -69,7 +67,29 @@ class QueueManager {
 
     receiveFromQueue() {
         return new Promise((resolve, reject) => {
+            console.log(this.queue)
+            this.connect()
+            .then(ch => {
+                ch.assertQueue(this.queue, {
+                    durable: true
+                })
 
+                ch.prefetch(1) // prefetch 1 message at a time to avoid distributing resources unevenly
+
+                console.log(`waiting for message from ${this.queue}...`)
+                ch.consume(this.queue, payload => {
+
+                var msg = payload.content.toString()
+                var msgJSON = JSON.parse(msg)
+                console.log(`>> SUCCESS [receiveFromQueue]: received message: ${msg}`)
+                resolve(msgJSON)
+                }, {noAck: true})
+                
+            })
+            .catch(err => {
+                console.log(`>>ERROR [receiveFromQueue]: connection error for ${this.queue}`)
+                reject(err)
+            })
         })
     }
 
