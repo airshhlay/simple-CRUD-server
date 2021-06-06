@@ -1,21 +1,19 @@
 var express = require('express')
 var swaggerUi = require("swagger-ui-express");
 var swaggerDocument = require('./swagger.json')
-var DatabaseManager = require('./db/database-manager.js')
+var DatabaseManager = require('./services/database-manager.js')
 var router = require('./routes/router.js')
 var QueueManager = require('./services/rabbitmq-service.js')
 var Worker = require('./workers/worker')
 var loadConfig = require('./config/config-reader')
 
-// configurations
+// config
 var config = loadConfig()
 // create database manager instance
-var databaseManager = new DatabaseManager(config.DATABASE_NAME, config.MONGO_CONNECTION_URL)
+var databaseManager = new DatabaseManager(config.DATABASE_NAME, config.DATABASE_CONNECTION_URL)
 
 // create queue manager instance
-var statusQManager = new QueueManager(config.RMQ_JOB_QNAME, config.RMQ_CONNECTION_URL)
 var jobQManager = new QueueManager(config.RMQ_JOB_QNAME, config.RMQ_CONNECTION_URL)
-
 
 // express middleware
 var app = express()

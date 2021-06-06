@@ -13,6 +13,10 @@ class QueueManager {
        return this.jobId
     }
 
+    setMessageHandler(handler) {
+        this.handler = handler
+    }
+
     connect () {
         return new Promise((resolve, reject) => {
             if (this.channel !== null) {
@@ -67,24 +71,25 @@ class QueueManager {
 
     receiveFromQueue() {
         return new Promise((resolve, reject) => {
-            console.log(this.queue)
             this.connect()
             .then(ch => {
                 ch.assertQueue(this.queue, {
                     durable: true
                 })
 
-                ch.prefetch(1) // prefetch 1 message at a time to avoid distributing resources unevenly
+                ch.prefetch(1) // prefetch 1 message at a time
 
                 console.log(`waiting for message from ${this.queue}...`)
                 ch.consume(this.queue, payload => {
 
                 var msg = payload.content.toString()
                 var msgJSON = JSON.parse(msg)
+
+                this.handler(msgJSON) // call worker
                 console.log(`>> SUCCESS [receiveFromQueue]: received message: ${msg}`)
                 resolve(msgJSON)
                 }, {noAck: true})
-                
+
             })
             .catch(err => {
                 console.log(`>>ERROR [receiveFromQueue]: connection error for ${this.queue}`)

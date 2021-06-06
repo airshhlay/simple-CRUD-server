@@ -1,5 +1,8 @@
 var fs = require('fs')
 var yaml = require('js-yaml')
+var dotenv = require('dotenv')
+
+dotenv.config()
 
 loadConfig = () => {
     try {

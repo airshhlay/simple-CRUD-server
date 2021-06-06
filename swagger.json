@@ -64,6 +64,20 @@
                 }
             }
         },
+        "/jobs/results?jobId=JOBID": {
+            "get": {
+                "tags": ["Users"],
+                "summary": "Get the details of a specified job",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "query",
+                        "type": "integer",
+                        "description": "jobId of the job you want to retrieve"
+                    }
+                ]
+            }
+        },
         "/jobs/submit": {
             "post": {
                 "tags": ["Users"],

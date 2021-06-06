@@ -10,10 +10,4 @@ const jobSchema = new mongoose.Schema({
     timeout: {type: Number, default: 2000} // duration in milliseconds, submitted by the user
 })
 
-// jobSchema.methods.execute = () => {
-//     setTimeout(() => {
-//         console.log(`Job name: ${this.name} executed.`)
-//     }, this.timeout)
-// }
-
 module.exports = mongoose.model('JobModel', jobSchema)

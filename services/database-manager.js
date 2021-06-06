@@ -1,8 +1,6 @@
 var { connect } = require('http2')
-var mongodb = require('mongodb')
-var Job = require('./model/job.js')
+var Job = require('../model/job.js')
 var mongoose = require('mongoose')
-const { error } = require('console')
 
 // var connectionUrl = 'mongodb://127.0.0.1:27017'
 // var databaseName = 'onboarding-assignment'
@@ -40,6 +38,23 @@ class DatabaseManager {
             Job.findOne({
                 jobId: jobId
             })
+            .exec()
+            .then(res => {
+                resolve(res)
+            })
+            .catch(err => {
+                reject(err)
+            })
+        })
+    }
+
+    // get the last <number> jobs submitted to the database
+    getJobs(number) {
+        return new Promise((resolve, reject) => {
+            Job.find({})
+            .exec()
+            .sort({"created": -1})
+            .limit(number)
             .then(res => {
                 resolve(res)
             })
@@ -73,22 +88,21 @@ class DatabaseManager {
             })
 
             resolve(jobDetails.jobId)
-            })
+        })
     }
 
     /*
     Modify the name of the job
+    jobDetails is a JSON object specifying the required updates
     Returns a new promise
     */
-    modifyJob(jobDetails) {
+    updateJob(jobId, jobDetails) {
         return new Promise((resolve, reject) => {
-            Job.updateOne({
-                name: jobDetails.name,
-                jobId: jobDetails.jobId
+            Job.updateOne({jobId: jobId}, jobDetails, {runValidators: true})
+            .exec()
+            .then(res => {
+                resolve(res)
             })
-            .then(
-                resolve()
-            )
             .catch(err => {
                 reject(err)
             })
@@ -104,9 +118,9 @@ class DatabaseManager {
             Job.deleteOne({
                 jobId: jobId
             })
-            .then(
-                resolve()
-            )
+            .then(res => {
+                resolve(res)
+            })
             .catch(err => {
                 reject(err)
             })
@@ -117,20 +131,25 @@ class DatabaseManager {
     Lists all jobs
     */
     listJobs() {
-        var jobLst = []
-        Job.find({}, (err, res) => {
-            if (err) {
-                return console.log(err)
-            }
-            res.forEach((job) => {
-                var jobJson = {
-                    "jobId": job.jobId,
-                    "name": job.name,
-                }
-                jobLst.push(jobJson)
+        return new Promise((resolve, reject) => {
+            var jobLst = []
+            Job.find({})
+            .cache()
+            .then((res) => {
+                res.forEach((job) => {
+                    jobLst.push({
+                        "jobId": job.jobId,
+                        "name": job.name,
+                        "complete": job.complete,
+                        "created": job.created
+                    })
+                })
+                resolve(jobLst)
             })
+            .catch(err => {
+                reject(err)
+            }) 
         })
-        return jobLst
     }
 }
 
