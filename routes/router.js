@@ -2,7 +2,6 @@ var express = require('express')
 var {check, body, validationResult} = require('express-validator')
 const DatabaseManager = require('../services/database-manager')
 var router = express.Router()
-
 // APIs called by user
 
 /*
@@ -55,7 +54,7 @@ router.post('/submit', submitParamCheck, (req, res) => {
     .then(jobId => {
         // add to rmq with the specified jobId
         qm.publishToQueue({jobId: jobId})
-        .then(res.sendStatus(202))
+        .then(res.status(200).send({"jobId" : jobId}))
         .catch(err => {
             res.status(500).send("Internal Server Error: unable to queue job")
         })
@@ -85,7 +84,9 @@ router.put('/put', modifyParamCheck, (req, res) => {
     console.log(jobDetails)
 
     var dm = req.dm
+    var qm = req.qm
 
+    
     dm.updateJob(
         jobId, jobDetails
     )

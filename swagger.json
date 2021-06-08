@@ -21,49 +21,6 @@
     "consumes": ["application/json"],
     "produces": ["application/json"],
     "paths": {
-        "/jobs/listall": {
-            "get": {
-                "tags": ["Users"],
-                "summary": "Retrieves all the jobs in the database"
-            },
-            "responses": {
-                "200": {
-                    "description": "ok"
-                },
-                "400": {
-                    "description": "bad request"
-                },
-                "500": {
-                    "description": "internal server error"
-                }
-            }
-        },
-        "/jobs/list?numberJobs=NUMBER": {
-            "get": {
-                "tags": ["Users"],
-                "summary": "Retrieves the jobs from the database with the specified status",
-                "parameters": [
-                    {
-                        "name": "numberJobs",
-                        "in": "query",
-                        "required": true,
-                        "type": "integer",
-                        "description": "Returns the last NUMBER jobs submitted"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok"
-                    },
-                    "400": {
-                        "description": "bad request"
-                    },
-                    "500": {
-                        "description": "internal server error"
-                    }
-                }
-            }
-        },
         "/jobs/results?jobId=JOBID": {
             "get": {
                 "tags": ["Users"],

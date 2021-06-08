@@ -8,11 +8,20 @@ class QueueManager {
         this.jobId = 0 // first job id will start with 1
     }
 
+    setJobId(jobId) {
+        this.jobId = jobId
+    }
+
     getNewJobId() {
        this.jobId ++
        return this.jobId
     }
 
+    getCurrentJobId() {
+        return this.jobId
+    }
+
+    // set the function to read and process incoming messages
     setMessageHandler(handler) {
         this.handler = handler
     }

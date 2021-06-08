@@ -3,6 +3,8 @@ DATABASE_NAME:
   onboarding-assignment
 DATABASE_CONNECTION_URL:
   mongodb://127.0.0.1:27017
+DATABASE_COLLECTION_NAME:
+  jobmodels
 
 # server
 PORT:
@@ -13,13 +15,11 @@ HOST:
 # rabbitmq
 RMQ_JOB_QNAME:
   onboarding-assignment-job-queue
-RMQ_STATUS_QNAME:
-  onboarding-assignment-db-update
 RMQ_CONNECTION_URL:
   amqp://localhost
 
 # redis
 REDIS_HOST:
-  redis://127.0.0.1
+  127.0.0.1
 REDIS_PORT:
   6379

@@ -11,7 +11,7 @@ var execute = () => {
         setTimeout(() => {
             console.log("executed job")
             resolve()
-        }, 2000)
+        }, 5000)
     })
     // then post job update by either
     // 1. adding to a separate rmq

@@ -1,6 +1,15 @@
-var { connect } = require('http2')
+var {
+    connect
+} = require('http2')
 var Job = require('../model/job.js')
 var mongoose = require('mongoose')
+var cache = require('./cache')
+const {
+    clearCache,
+    checkCache,
+    setCache,
+    deleteCacheById
+} = require('./cache')
 
 // var connectionUrl = 'mongodb://127.0.0.1:27017'
 // var databaseName = 'onboarding-assignment'
@@ -21,12 +30,15 @@ class DatabaseManager {
     }
 
     connect() {
-        mongoose.connect(`${this.connectionUrl}/${this.databaseName}`, {useNewUrlParser: true, useUnifiedTopology: true})
-        .then((db) => {
-            console.log(">> SUCCESS: Database connected")
-        }).catch((err) => {
-            console.log(">> ERROR: Database connection error")
+        mongoose.connect(`${this.connectionUrl}/${this.databaseName}`, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
         })
+            .then((db) => {
+                console.log(">> SUCCESS: Database connected")
+            }).catch((err) => {
+                console.log(">> ERROR: Database connection error")
+            })
     }
 
     /*
@@ -35,32 +47,43 @@ class DatabaseManager {
     */
     getJob(jobId) {
         return new Promise((resolve, reject) => {
-            Job.findOne({
-                jobId: jobId
-            })
-            .exec()
-            .then(res => {
-                resolve(res)
-            })
-            .catch(err => {
-                reject(err)
-            })
+            checkCache(jobId)
+                .then(cacheRes => {
+                    if (cacheRes !== null) {
+                        console.log("data in cache")
+                        return resolve(JSON.parse(cacheRes))
+                    }
+                    Job.findOne({
+                        jobId: jobId
+                    })
+                        .exec()
+                        .then(res => {
+                            setCache(jobId, res)
+                            return resolve(res)
+                        })
+                        .catch(err => {
+                            return reject(err)
+                        })
+                })
         })
     }
 
     // get the last <number> jobs submitted to the database
+    // NOT IN USE
     getJobs(number) {
         return new Promise((resolve, reject) => {
             Job.find({})
-            .exec()
-            .sort({"created": -1})
-            .limit(number)
-            .then(res => {
-                resolve(res)
-            })
-            .catch(err => {
-                reject(err)
-            })
+                .exec()
+                .sort({
+                    "created": -1
+                })
+                .limit(number)
+                .then(res => {
+                    return resolve(res)
+                })
+                .catch(err => {
+                    return reject(err)
+                })
         })
     }
 
@@ -73,6 +96,8 @@ class DatabaseManager {
     */
     addJob(jobDetails) {
         return new Promise((resolve, reject) => {
+            // clearCache()
+            //     .then(() => {
             // create job defined in model
             var job = new Job({
                 name: jobDetails.name,
@@ -82,13 +107,24 @@ class DatabaseManager {
             var created
             job.save((err, res) => {
                 if (err) {
-                    reject(err)
+                    return reject(err)
                 }
-                created = res
+                created = {
+                    "jobId": res.jobId,
+                    "name": res.name,
+                    "complete": res.complete,
+                    "created": res.created,
+                }
             })
-
-            resolve(jobDetails.jobId)
+            console.log("Created: " + created)
+            setCache(jobDetails.jobId, created) // set cache
+            return resolve(jobDetails.jobId)
         })
+            .catch(err => {
+                console.log(TypeError)
+                return reject(err)
+            })
+        // })
     }
 
     /*
@@ -98,14 +134,33 @@ class DatabaseManager {
     */
     updateJob(jobId, jobDetails) {
         return new Promise((resolve, reject) => {
-            Job.updateOne({jobId: jobId}, jobDetails, {runValidators: true})
-            .exec()
-            .then(res => {
-                resolve(res)
-            })
-            .catch(err => {
-                reject(err)
-            })
+            deleteCacheById(jobId) // clear cache
+                .then(() => {
+                    Job.findOneAndUpdate({
+                        jobId: jobId
+                    }, jobDetails, {
+                        runValidators: true,
+                        new: true,
+                        useFindAndModify: false
+                    })
+                        .exec()
+                        .then(res => {
+                            var created = {
+                                "jobId": res.jobId,
+                                "name": res.name,
+                                "complete": res.complete,
+                                "created": res.created,
+                            }
+                            setCache(jobId, created)
+                            return resolve(res)
+                        })
+                        .catch(err => {
+                            return reject(err)
+                        })
+                })
+                .catch(err => {
+                    return reject(err)
+                })
         })
     }
 
@@ -115,40 +170,48 @@ class DatabaseManager {
     */
     deleteJob(jobId) {
         return new Promise((resolve, reject) => {
-            Job.deleteOne({
-                jobId: jobId
-            })
-            .then(res => {
-                resolve(res)
-            })
-            .catch(err => {
-                reject(err)
-            })
+            deleteCacheById(jobId)
+                .then(() => {
+                    Job.deleteOne({
+                        jobId: jobId
+                    })
+                        .then(res => {
+                            return resolve(res)
+                        })
+                        .catch(err => {
+                            return eject(err)
+                        })
+                })
+                .catch(err => {
+                    return reject(err)
+                })
+
         })
     }
 
     /*
     Lists all jobs
+    NOT IN USE
     */
     listJobs() {
         return new Promise((resolve, reject) => {
             var jobLst = []
             Job.find({})
-            .cache()
-            .then((res) => {
-                res.forEach((job) => {
-                    jobLst.push({
-                        "jobId": job.jobId,
-                        "name": job.name,
-                        "complete": job.complete,
-                        "created": job.created
+                .cache()
+                .then((res) => {
+                    res.forEach((job) => {
+                        jobLst.push({
+                            "jobId": job.jobId,
+                            "name": job.name,
+                            "complete": job.complete,
+                            "created": job.created
+                        })
                     })
+                    return resolve(jobLst)
                 })
-                resolve(jobLst)
-            })
-            .catch(err => {
-                reject(err)
-            }) 
+                .catch(err => {
+                    return reject(err)
+                })
         })
     }
 }
