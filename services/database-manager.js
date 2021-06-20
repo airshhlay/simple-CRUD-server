@@ -58,7 +58,10 @@ class DatabaseManager {
                     })
                         .exec()
                         .then(res => {
-                            setCache(jobId, res)
+                            if (res !== null) {
+                                setCache(jobId, res)
+                            }
+                        
                             return resolve(res)
                         })
                         .catch(err => {
@@ -104,21 +107,20 @@ class DatabaseManager {
                 jobId: jobDetails.jobId
             })
             // save to database
-            var created
             job.save((err, res) => {
                 if (err) {
                     return reject(err)
                 }
-                created = {
+                var created = {
                     "jobId": res.jobId,
                     "name": res.name,
                     "complete": res.complete,
                     "created": res.created,
                 }
+                console.log("Created: " + created)
+                setCache(jobDetails.jobId, created) // set cache
+                return resolve(jobDetails.jobId)
             })
-            console.log("Created: " + created)
-            setCache(jobDetails.jobId, created) // set cache
-            return resolve(jobDetails.jobId)
         })
             .catch(err => {
                 console.log(TypeError)
@@ -145,13 +147,15 @@ class DatabaseManager {
                     })
                         .exec()
                         .then(res => {
-                            var created = {
-                                "jobId": res.jobId,
-                                "name": res.name,
-                                "complete": res.complete,
-                                "created": res.created,
+                            if (res !== null) {
+                                var created = {
+                                    "jobId": res.jobId,
+                                    "name": res.name,
+                                    "complete": res.complete,
+                                    "created": res.created,
+                                }
+                                setCache(jobId, created)
                             }
-                            setCache(jobId, created)
                             return resolve(res)
                         })
                         .catch(err => {

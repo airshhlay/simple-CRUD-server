@@ -37,9 +37,11 @@ var getSavedData = () => {
 
 var updateSavedData = (update) => {
     try {
-        var filePath = process.env.NODE_ENV === 'TEST' ? TEST_SAVED_DATA_FILE : DEV_SAVED_DATA_FILE
-        fs.writeFileSync(__dirname + filePath, JSON.stringify(update))
-        console.log(">> SUCCESS: updated saved data at: " + filePath)
+        if (process.env.NODE_ENV === 'TEST') {
+            return console.log("skipping update for test saved data")
+        }
+        fs.writeFileSync(__dirname + DEV_SAVED_DATA_FILE, JSON.stringify(update))
+        return console.log(">> SUCCESS: updated saved data at: " + filePath)
     } catch(err) {
         console.log(">> ERROR [config-reader::updateSavedData]", err)
     }

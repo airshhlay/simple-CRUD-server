@@ -1,0 +1,23 @@
+[   {
+        "name": "job1",
+        "jobId": "1",
+        "complete": true
+    },
+    {
+        "name": "job2",
+        "jobId": "2",
+        "complete": true
+    },
+
+    {
+        "name": "job3",
+        "jobId": "3",
+        "complete": false
+    },
+
+    {
+        "name": "job4",
+        "jobId": "4",
+        "complete": false
+    }
+]
